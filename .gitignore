@@ -14,3 +14,9 @@ test_all_videos.py
 .idea/
 .vscode/
 node_modules/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
