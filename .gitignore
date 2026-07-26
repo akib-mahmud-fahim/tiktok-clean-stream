@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.log
+test_results.txt
+fast_results.txt
+run_test.py
+test_api.py
+test_fast.py
+test_multi.py
+test_urls.py
+test_all_videos.py
+.env
+.idea/
+.vscode/
+node_modules/

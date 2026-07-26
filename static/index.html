@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Clean Video Player & Embed Link Generator</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-play"></i>
+                </div>
+                <span class="brand-title">StreamClean</span>
+                <span class="brand-badge">TikTok No-Logo Stream</span>
+            </a>
+            <div class="nav-links">
+                <a href="#history-section" class="btn-secondary btn-icon" title="View History">
+                    <i class="fa-solid fa-clock-rotate-left"></i> History
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Wrapper -->
+    <main class="main-wrapper">
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1 class="hero-title">Stream TikTok Videos Without Logos or Watermarks</h1>
+            <p class="hero-subtitle">Paste any TikTok embed code or video link to extract a clean, original stream. Generate permanent, non-expiring iframe embed codes and player URLs for your streaming website.</p>
+        </section>
+
+        <!-- Input Glass Card -->
+        <section class="glass-card">
+            <div class="section-label">
+                <i class="fa-solid fa-code"></i> Paste TikTok Embed Code or Video Link
+            </div>
+            
+            <div class="input-group">
+                <textarea id="embedInput" class="code-textarea" placeholder='Paste example:&#10;<blockquote class="tiktok-embed" cite="https://www.tiktok.com/@username/video/123456789..." data-video-id="123456789...">...</blockquote>&#10;or direct TikTok link: https://www.tiktok.com/@username/video/123456789...'></textarea>
+                
+                <div class="action-row">
+                    <div style="display:flex; gap:10px;">
+                        <button id="parseBtn" class="btn-primary">
+                            <span class="spinner" id="btnSpinner"></span>
+                            <i class="fa-solid fa-wand-magic-sparkles" id="btnIcon"></i>
+                            Generate Stream Link
+                        </button>
+                        <button id="clearBtn" class="btn-secondary">
+                            <i class="fa-solid fa-eraser"></i> Clear
+                        </button>
+                    </div>
+                    <button id="pasteBtn" class="btn-secondary">
+                        <i class="fa-solid fa-paste"></i> Paste from Clipboard
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Result Preview Section -->
+        <section class="glass-card" id="resultSection" style="display: none;">
+            <div class="section-label">
+                <i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> Clean Stream Player & Embed Code
+            </div>
+
+            <div class="result-grid">
+                <!-- Left Column: Video Player Preview (No title/caption overlays) -->
+                <div>
+                    <div class="player-container" id="playerWrapper">
+                        <iframe id="previewIframe" class="player-iframe" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                    <div style="margin-top: 14px; display:flex; justify-content:flex-end; align-items:center;">
+                        <a id="openNewTabBtn" href="#" target="_blank" class="btn-secondary" style="font-size:0.85rem; padding:8px 16px;">
+                            <i class="fa-solid fa-up-right-from-square"></i> Open Player in New Tab
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right Column: Code Outputs & Customizers -->
+                <div class="output-box">
+                    <!-- Option Switches -->
+                    <div>
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Player Settings</span>
+                        <div class="options-grid">
+                            <label class="option-checkbox">
+                                <input type="checkbox" id="optAutoplay">
+                                Autoplay
+                            </label>
+                            <label class="option-checkbox">
+                                <input type="checkbox" id="optLoop" checked>
+                                Loop
+                            </label>
+                            <label class="option-checkbox">
+                                <input type="checkbox" id="optMuted">
+                                Muted
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Clean iFrame Code for Website -->
+                    <div class="code-field-group">
+                        <div class="code-field-label">
+                            <span>Permanent iFrame Embed Code (For Your Website)</span>
+                            <button id="copyIframeBtn" class="btn-secondary" style="font-size:0.78rem; padding:4px 10px;">
+                                <i class="fa-regular fa-copy"></i> Copy Code
+                            </button>
+                        </div>
+                        <div class="code-display" id="iframeDisplayCode"></div>
+                    </div>
+
+                    <!-- Direct Player URL -->
+                    <div class="code-field-group">
+                        <div class="code-field-label">
+                            <span>Permanent Player Stream URL</span>
+                            <button id="copyUrlBtn" class="btn-secondary" style="font-size:0.78rem; padding:4px 10px;">
+                                <i class="fa-regular fa-copy"></i> Copy URL
+                            </button>
+                        </div>
+                        <div class="code-display" id="playerUrlCode"></div>
+                    </div>
+
+                    <!-- Direct Proxy Stream Link -->
+                    <div class="code-field-group">
+                        <div class="code-field-label">
+                            <span>Direct Non-Expiring Proxy Stream Endpoint</span>
+                            <button id="copyMp4Btn" class="btn-secondary" style="font-size:0.78rem; padding:4px 10px;">
+                                <i class="fa-regular fa-copy"></i> Copy Stream Endpoint
+                            </button>
+                        </div>
+                        <div class="code-display" id="mp4UrlCode" style="color:var(--emerald);"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Saved History Section -->
+        <section class="glass-card" id="history-section">
+            <div class="section-label" style="justify-content:space-between;">
+                <span><i class="fa-solid fa-clock-rotate-left"></i> Extracted Videos History</span>
+                <button id="clearHistoryBtn" class="btn-secondary" style="font-size:0.8rem; padding:4px 10px;">
+                    <i class="fa-solid fa-trash-can"></i> Clear History
+                </button>
+            </div>
+            
+            <div id="historyContainer" style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
+                <div style="color:var(--text-dim); text-align:center; padding:20px;">No video history saved yet.</div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="fa-solid fa-circle-check"></i> <span id="toastMsg">Copied to clipboard!</span>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 StreamClean - TikTok Clean Video Player Generator. Built for video streaming platforms.</p>
+    </footer>
+
+    <script>
+        const embedInput = document.getElementById('embedInput');
+        const parseBtn = document.getElementById('parseBtn');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const btnIcon = document.getElementById('btnIcon');
+        const clearBtn = document.getElementById('clearBtn');
+        const pasteBtn = document.getElementById('pasteBtn');
+        
+        const resultSection = document.getElementById('resultSection');
+        const previewIframe = document.getElementById('previewIframe');
+        const iframeDisplayCode = document.getElementById('iframeDisplayCode');
+        const playerUrlCode = document.getElementById('playerUrlCode');
+        const mp4UrlCode = document.getElementById('mp4UrlCode');
+        const openNewTabBtn = document.getElementById('openNewTabBtn');
+
+        const optAutoplay = document.getElementById('optAutoplay');
+        const optLoop = document.getElementById('optLoop');
+        const optMuted = document.getElementById('optMuted');
+
+        const copyIframeBtn = document.getElementById('copyIframeBtn');
+        const copyUrlBtn = document.getElementById('copyUrlBtn');
+        const copyMp4Btn = document.getElementById('copyMp4Btn');
+        const historyContainer = document.getElementById('historyContainer');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        let currentData = null;
+
+        // Clipboard Paste
+        pasteBtn.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    embedInput.value = text;
+                    showToast('Pasted from clipboard!');
+                }
+            } catch (err) {
+                showToast('Clipboard access permission denied.', true);
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            embedInput.value = '';
+            resultSection.style.display = 'none';
+        });
+
+        // Parse Request
+        parseBtn.addEventListener('click', async () => {
+            const inputVal = embedInput.value.trim();
+            if (!inputVal) {
+                showToast('Please enter a TikTok embed code or video URL.', true);
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                const res = await fetch('/api/parse', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input: inputVal })
+                });
+
+                const data = await res.json();
+                setLoading(false);
+
+                if (data.status === 'success') {
+                    currentData = data;
+                    renderResult();
+                    saveToHistory(data);
+                    showToast('Clean video stream link generated successfully!');
+                } else {
+                    showToast(data.message || 'Failed to extract video stream.', true);
+                }
+            } catch (err) {
+                setLoading(false);
+                showToast('Error connecting to the server.', true);
+            }
+        });
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                btnSpinner.style.display = 'inline-block';
+                btnIcon.style.display = 'none';
+                parseBtn.disabled = true;
+            } else {
+                btnSpinner.style.display = 'none';
+                btnIcon.style.display = 'inline-block';
+                parseBtn.disabled = false;
+            }
+        }
+
+        // Render result & update player parameters dynamically
+        function renderResult() {
+            if (!currentData) return;
+
+            let finalPlayerUrl = currentData.playerUrl;
+            let params = [];
+            if (optAutoplay.checked) params.push('autoplay=1');
+            if (optLoop.checked) params.push('loop=1');
+            if (optMuted.checked) params.push('muted=1');
+
+            if (params.length > 0) {
+                finalPlayerUrl += (finalPlayerUrl.includes('?') ? '&' : '?') + params.join('&');
+            }
+
+            const iframeCode = `<iframe src="${finalPlayerUrl}" width="100%" height="450" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+
+            previewIframe.src = finalPlayerUrl;
+            iframeDisplayCode.textContent = iframeCode;
+            playerUrlCode.textContent = finalPlayerUrl;
+            mp4UrlCode.textContent = currentData.directProxyStream;
+            openNewTabBtn.href = finalPlayerUrl;
+
+            resultSection.style.display = 'block';
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        [optAutoplay, optLoop, optMuted].forEach(opt => {
+            opt.addEventListener('change', renderResult);
+        });
+
+        // Copy Handlers
+        copyIframeBtn.addEventListener('click', () => {
+            copyToClipboard(iframeDisplayCode.textContent, 'iFrame Embed Code copied!');
+        });
+        copyUrlBtn.addEventListener('click', () => {
+            copyToClipboard(playerUrlCode.textContent, 'Player Stream URL copied!');
+        });
+        copyMp4Btn.addEventListener('click', () => {
+            copyToClipboard(mp4UrlCode.textContent, 'Direct Proxy Stream URL copied!');
+        });
+
+        function copyToClipboard(text, msg) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(msg);
+            });
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = msg;
+            if (isError) {
+                toast.classList.add('error');
+            } else {
+                toast.classList.remove('error');
+            }
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // History Management
+        function getHistory() {
+            return JSON.parse(localStorage.getItem('tiktok_stream_history') || '[]');
+        }
+
+        function saveToHistory(item) {
+            let history = getHistory();
+            history = history.filter(h => h.videoId !== item.videoId);
+            history.unshift({
+                videoId: item.videoId,
+                playerUrl: item.playerUrl,
+                timestamp: new Date().toLocaleTimeString()
+            });
+            if (history.length > 10) history = history.slice(0, 10);
+            localStorage.setItem('tiktok_stream_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const history = getHistory();
+            if (history.length === 0) {
+                historyContainer.innerHTML = '<div style="color:var(--text-dim); text-align:center; padding:20px;">No video history saved yet.</div>';
+                return;
+            }
+            historyContainer.innerHTML = history.map(item => `
+                <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md); display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-weight:600; font-size:0.9rem; color:#e2e8f0;">TikTok Video ID: ${item.videoId}</div>
+                        <div style="font-size:0.75rem; color:var(--text-dim);">${item.timestamp}</div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <a href="${item.playerUrl}" target="_blank" class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;">
+                            <i class="fa-solid fa-play"></i> Play
+                        </a>
+                        <button onclick="navigator.clipboard.writeText('${item.playerUrl}'); alert('Player URL copied!');" class="btn-secondary" style="font-size:0.75rem; padding:4px 8px;">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        clearHistoryBtn.addEventListener('click', () => {
+            localStorage.removeItem('tiktok_stream_history');
+            renderHistory();
+            showToast('History cleared.');
+        });
+
+        renderHistory();
+    </script>
+</body>
+</html>
