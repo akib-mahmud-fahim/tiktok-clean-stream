@@ -73,7 +73,7 @@ export default {
                 }
 
                 // Extract direct stream link using TikWM API
-                const streamData = await fetchTikWM(targetUrl);
+                const streamData = await fetchTikTokData(targetUrl);
                 const vid = streamData?.vid || videoId || 'stream';
                 const hostUrl = `${url.protocol}//${url.host}`;
                 
@@ -117,7 +117,7 @@ export default {
             let streamToFetch = targetStreamUrl;
 
             if (!streamToFetch && vId) {
-                const data = await fetchTikWM(`https://www.tiktok.com/video/${vId}`);
+                const data = await fetchTikTokData(`https://www.tiktok.com/video/${vId}`);
                 if (data && data.streamUrl) {
                     streamToFetch = data.streamUrl;
                 } else {
@@ -183,7 +183,29 @@ function extractUrl(text) {
     return urlMatch ? urlMatch[0] : null;
 }
 
-async function fetchTikWM(targetUrl) {
+async function fetchTikTokData(targetUrl) {
+    // Provider 1: TikWM POST
+    try {
+        const formData = new URLSearchParams();
+        formData.append('url', targetUrl);
+        formData.append('hd', '1');
+        const res = await fetch('https://www.tikwm.com/api/', {
+            method: 'POST',
+            headers: { ...HEADERS, 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        });
+        const json = await res.json();
+        if (json.code === 0 && json.data && json.data.play) {
+            return {
+                streamUrl: json.data.play,
+                title: json.data.title || '',
+                author: json.data.author?.nickname || '',
+                vid: json.data.id || ''
+            };
+        }
+    } catch (e) {}
+
+    // Provider 2: TikWM GET
     try {
         const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(targetUrl)}&hd=1`;
         const res = await fetch(apiUrl, { headers: HEADERS });
@@ -197,6 +219,58 @@ async function fetchTikWM(targetUrl) {
             };
         }
     } catch (e) {}
+
+    // Provider 3: LoveTik
+    try {
+        const formData = new URLSearchParams();
+        formData.append('query', targetUrl);
+        const res = await fetch('https://lovetik.com/api/ajax/search', {
+            method: 'POST',
+            headers: { ...HEADERS, 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        });
+        const json = await res.json();
+        if (json.status === 'ok' && json.links && json.links.length > 0) {
+            const mp4Link = json.links.find(l => l.a && l.a.includes('http')) || json.links[0];
+            if (mp4Link && mp4Link.a) {
+                return {
+                    streamUrl: mp4Link.a,
+                    title: json.desc || '',
+                    author: json.author || '',
+                    vid: json.vid || ''
+                };
+            }
+        }
+    } catch (e) {}
+
+    // Provider 4: Tiklydown
+    try {
+        const res = await fetch(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(targetUrl)}`, { headers: HEADERS });
+        const json = await res.json();
+        if (json.video && (json.video.noWatermark || json.video.watermark)) {
+            return {
+                streamUrl: json.video.noWatermark || json.video.watermark,
+                title: json.title || '',
+                author: json.author?.name || '',
+                vid: json.id || ''
+            };
+        }
+    } catch (e) {}
+
+    // Provider 5: TikTok oEmbed Fallback
+    try {
+        const res = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(targetUrl)}`, { headers: HEADERS });
+        const json = await res.json();
+        if (json.title || json.author_name) {
+            return {
+                streamUrl: null,
+                title: json.title || '',
+                author: json.author_name || '',
+                vid: json.embed_product_id || ''
+            };
+        }
+    } catch (e) {}
+
     return null;
 }
 
